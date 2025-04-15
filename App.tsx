@@ -1,19 +1,22 @@
+// App.tsx
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "./src/Presentation/views/home/home";
 import { RegisterScreen } from "./src/Presentation/views/register/Register";
 import ForgotPasswordScreen from "./src/Presentation/views/forgotPassword/ForgotPasswordScreen";
-import MenuScreen from "./src/Presentation/views/home/MenuScreen"; 
+import InmobiliariaPerfil from "./src/Presentation/views/home/InmobiliariaPerfil";
 
-// Definir los parámetros de navegación
+// ✅ Definir los parámetros del stack, incluyendo todas las rutas
 export type RootStackParamList = {
   HomeScreen: undefined;
   RegisterScreen: undefined;
-  ForgotPasswordScreen: undefined; 
-  MenuScreen: undefined; // Nueva ruta
+  ForgotPasswordScreen: undefined;
+  MenuScreen: undefined;
+  InmobiliariaPerfil: undefined; // ✅ Agregado aquí
 };
 
+// Crear el stack de navegación con el tipo definido
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const App = () => {
@@ -32,8 +35,8 @@ const App = () => {
           options={{ headerShown: true, title: "Recuperar Contraseña" }}
         />
         <Stack.Screen
-          name="MenuScreen"
-          component={MenuScreen} // Nueva pantalla del menú
+          name="InmobiliariaPerfil"
+          component={InmobiliariaPerfil}
           options={{ headerShown: true, title: "Menú" }}
         />
       </Stack.Navigator>
