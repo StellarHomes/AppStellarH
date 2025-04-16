@@ -30,7 +30,7 @@ const HomeScreen = () => {
 
     try {
       // Realiza la solicitud POST a la API PHP
-      const response = await axios.post("http://192.168.0.3/Api/loginInmobiliaria.php", {
+      const response = await axios.post("http://192.168.0.3/ApiApp/loginInmobiliaria.php", {
         email,//ME1234@gmail.com
         password,//ME1234
         loginType: "inmobiliaria",

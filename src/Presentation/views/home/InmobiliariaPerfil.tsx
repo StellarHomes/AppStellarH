@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert, ImageBackground, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert, ImageBackground, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from "../../../../App";
+import styles from './styles1';
 
 interface InmobiliariaData {
   idInmobiliaria: string;
@@ -20,10 +23,10 @@ const InmobiliariaPerfil = () => {
   });
 
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
-    fetch('http://192.168.0.3/API/Inmobiliaria.php')
+    fetch('http://192.168.0.3/ApiApp/Inmobiliaria.php')
       .then(response => {
         if (!response.ok) throw new Error('Error al obtener los datos');
         return response.json();
@@ -47,7 +50,7 @@ const InmobiliariaPerfil = () => {
   };
 
   const handleSubmit = () => {
-    fetch('http://192.168.0.3/API/EditInmobiliaria.php', {
+    fetch('http://192.168.0.3/ApiApp/EditInmobiliaria.php', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -71,7 +74,19 @@ const InmobiliariaPerfil = () => {
       });
   };
 
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" style={{ flex: 1 }} />;
+  const handleLogout = () => {
+    navigation.navigate('HomeScreen');
+  };
+
+  const goToPublicaciones = () => {
+    navigation.navigate('MisPublicaciones');
+  };
+
+  const goToPublicar = () => {
+    navigation.navigate('PublicarInmueble');
+  };
+
+  if (loading) return <ActivityIndicator size="large" color="#1a237e" style={{ flex: 1 }} />;
 
   return (
     <ImageBackground
@@ -79,65 +94,60 @@ const InmobiliariaPerfil = () => {
       style={styles.background}
     >
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>{inmobiliariaData.NombreInmobiliaria}</Text>
+        {/* Header with Logo and Logout Button */}
+        <View style={styles.header}>
+          <Image source={require('../../../assets/sh_blanco-removebg-preview.png')} style={styles.logo} />
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </TouchableOpacity>
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Nombre Inmobiliaria"
-          value={inmobiliariaData.NombreInmobiliaria}
-          onChangeText={(text) => handleChange('NombreInmobiliaria', text)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={inmobiliariaData.EmailInmobiliaria}
-          keyboardType="email-address"
-          onChangeText={(text) => handleChange('EmailInmobiliaria', text)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Teléfono"
-          value={inmobiliariaData.Telefono}
-          keyboardType="phone-pad"
-          onChangeText={(text) => handleChange('Telefono', text)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Dirección"
-          value={inmobiliariaData.Direccion}
-          onChangeText={(text) => handleChange('Direccion', text)}
-        />
+        {/* Profile Form Section */}
+        <View style={styles.profileContainer}>
+          <Text style={styles.title}>{inmobiliariaData.NombreInmobiliaria}</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre Inmobiliaria"
+            value={inmobiliariaData.NombreInmobiliaria}
+            onChangeText={(text) => handleChange('NombreInmobiliaria', text)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={inmobiliariaData.EmailInmobiliaria}
+            keyboardType="email-address"
+            onChangeText={(text) => handleChange('EmailInmobiliaria', text)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Teléfono"
+            value={inmobiliariaData.Telefono}
+            keyboardType="phone-pad"
+            onChangeText={(text) => handleChange('Telefono', text)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Dirección"
+            value={inmobiliariaData.Direccion}
+            onChangeText={(text) => handleChange('Direccion', text)}
+          />
+        </View>
 
-        <Button title="Actualizar Perfil" onPress={handleSubmit} color="#1a237e" />
+        <TouchableOpacity style={styles.updateButton} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>Actualizar Perfil</Text>
+        </TouchableOpacity>
+
+        <View style={styles.bottomButtons}>
+          <TouchableOpacity style={styles.secondaryButton} onPress={goToPublicaciones}>
+            <Text style={styles.buttonText}>Mis Publicaciones</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={goToPublicar}>
+            <Text style={styles.buttonText}>Publicar Inmueble</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </ImageBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
-  container: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 20,
-    textAlign: 'center',
-    backgroundColor: '#00000088',
-    padding: 10,
-    borderRadius: 10,
-  },
-  input: {
-    backgroundColor: '#ffffffee',
-    marginBottom: 15,
-    padding: 10,
-    borderRadius: 8,
-  },
-});
 
 export default InmobiliariaPerfil;
