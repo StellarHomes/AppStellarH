@@ -9,7 +9,10 @@ import InmobiliariaPerfil from "./src/Presentation/views/home/InmobiliariaPerfil
 import MisPublicaciones from "./src/Presentation/views/home/MisPublicaciones";
 import PublicarInmueble from "./src/Presentation/views/home/PublicarInmueble";
 
-// ✅ Definir los parámetros del stack, incluyendo todas las rutas
+// 👇 IMPORTANTE: agregar esta línea
+import EditarInmueble from "./src/Presentation/views/home/EditarInmueble";
+
+// ✅ Agregar EditarInmueble al tipo RootStackParamList
 export type RootStackParamList = {
   HomeScreen: undefined;
   RegisterScreen: undefined;
@@ -17,9 +20,9 @@ export type RootStackParamList = {
   InmobiliariaPerfil: undefined;
   MisPublicaciones: undefined;
   PublicarInmueble: undefined;
+  EditarInmueble: { inmueble: any }; // Usá el tipo correcto si ya lo tenés
 };
 
-// Crear el stack de navegación con el tipo definido
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const App = () => {
@@ -51,6 +54,13 @@ const App = () => {
           name="PublicarInmueble"
           component={PublicarInmueble}
           options={{ headerShown: true, title: "Publicar Inmueble" }}
+        />
+        
+        {/* ✅ AÑADIDO */}
+        <Stack.Screen
+          name="EditarInmueble"
+          component={EditarInmueble}
+          options={{ headerShown: true, title: "Editar Inmueble" }}
         />
       </Stack.Navigator>
     </NavigationContainer>

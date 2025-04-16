@@ -18,7 +18,7 @@ app.disable("x-powered-by");
 app.set("port", port);
 
 // Cargar rutas
-app.use("/api", usersRoutes);
+app.use("/ApiApp", usersRoutes);
 
 
 app.get("/", (req, res) => {

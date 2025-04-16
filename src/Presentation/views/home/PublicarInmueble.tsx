@@ -1,60 +1,175 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, Image } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Picker } from '@react-native-picker/picker';
 
 const PublicarInmueble = () => {
-  const [nombre, setNombre] = useState('');
+  const [titulo, setTitulo] = useState('');
   const [descripcion, setDescripcion] = useState('');
-  const [ubicacion, setUbicacion] = useState('');
-  const [contacto, setContacto] = useState('');
+  const [precio, setPrecio] = useState('');
+  const [direccion, setDireccion] = useState('');
+  const [imagen, setImagen] = useState<string | null>(null);
 
-  const handleSubmit = () => {
-    if (!nombre || !descripcion || !ubicacion || !contacto) {
-      Alert.alert('Error', 'Por favor, completa todos los campos.');
-      return;
+  const [tipos, setTipos] = useState<any[]>([]);
+  const [estados, setEstados] = useState<any[]>([]);
+  const [transacciones, setTransacciones] = useState<any[]>([]);
+  const [inmobiliarias, setInmobiliarias] = useState<any[]>([]);
+
+  const [idTipo, setIdTipo] = useState('');
+  const [idEstado, setIdEstado] = useState('');
+  const [idTransaccion, setIdTransaccion] = useState('');
+  const [idInmobiliaria, setIdInmobiliaria] = useState('');
+
+  useEffect(() => {
+    // Cargar tipos
+    fetch('http://192.168.0.3/ApiApp/tipo.php')
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('Tipos:', data);
+        if (Array.isArray(data)) setTipos(data);
+        else setTipos([]);
+      })
+      .catch((error) => {
+        console.error('Error al cargar tipos:', error);
+      });
+
+    // Cargar estados
+    fetch('http://192.168.0.3/ApiApp/estado.php')
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('Estados:', data);
+        if (Array.isArray(data)) setEstados(data);
+        else setEstados([]);
+      })
+      .catch((error) => {
+        console.error('Error al cargar estados:', error);
+      });
+
+    // Cargar transacciones
+    fetch('http://192.168.0.3/ApiApp/transaccion.php')
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('Transacciones:', data);
+        if (Array.isArray(data)) setTransacciones(data);
+        else setTransacciones([]);
+      })
+      .catch((error) => {
+        console.error('Error al cargar transacciones:', error);
+      });
+
+    // Cargar inmobiliarias
+    fetch('http://192.168.0.3/ApiApp/inmobiliaria.php')
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('Inmobiliarias:', data);
+        if (Array.isArray(data)) setInmobiliarias(data);
+        else setInmobiliarias([]);
+      })
+      .catch((error) => {
+        console.error('Error al cargar inmobiliarias:', error);
+      });
+  }, []);
+
+  const seleccionarImagen = async () => {
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!resultado.canceled && resultado.assets.length > 0) {
+      setImagen(resultado.assets[0].uri);
     }
+  };
 
-    // Aquí iría la lógica para enviar los datos al backend
-    Alert.alert('Éxito', 'Publicación enviada correctamente.');
-    // Limpia los campos
-    setNombre('');
-    setDescripcion('');
-    setUbicacion('');
-    setContacto('');
+  const publicar = () => {
+    const datos = {
+      titulo,
+      descripcion,
+      precio,
+      direccion,
+      imagen,
+      idTipo,
+      idEstado,
+      idTransaccion,
+      idInmobiliaria,
+    };
+
+    fetch('http://192.168.0.3/ApiApp/publicar.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        alert(res.mensaje);
+      })
+      .catch((error) => {
+        alert('Error al publicar');
+        console.error(error);
+      });
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Publicar Inmueble</Text>
+      <Text style={styles.label}>Título:</Text>
+      <TextInput style={styles.input} value={titulo} onChangeText={setTitulo} />
 
+      <Text style={styles.label}>Descripción:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Nombre del Inmueble"
-        value={nombre}
-        onChangeText={setNombre}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Descripción"
         value={descripcion}
         onChangeText={setDescripcion}
         multiline
-        numberOfLines={4}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Ubicación"
-        value={ubicacion}
-        onChangeText={setUbicacion}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Contacto"
-        value={contacto}
-        onChangeText={setContacto}
-        keyboardType="phone-pad"
       />
 
-      <Button title="Publicar" onPress={handleSubmit} color="#1a237e" />
+      <Text style={styles.label}>Precio:</Text>
+      <TextInput
+        style={styles.input}
+        value={precio}
+        onChangeText={setPrecio}
+        keyboardType="numeric"
+      />
+
+      <Text style={styles.label}>Dirección:</Text>
+      <TextInput style={styles.input} value={direccion} onChangeText={setDireccion} />
+
+      <Text style={styles.label}>Tipo:</Text>
+      <Picker selectedValue={idTipo} onValueChange={setIdTipo}>
+        <Picker.Item label="Selecciona un tipo" value="" />
+        {tipos.map((item) => (
+          <Picker.Item key={item.idTipo} label={item.nombre} value={item.idTipo} />
+        ))}
+      </Picker>
+
+      <Text style={styles.label}>Estado:</Text>
+      <Picker selectedValue={idEstado} onValueChange={setIdEstado}>
+        <Picker.Item label="Selecciona un estado" value="" />
+        {estados.map((item) => (
+          <Picker.Item key={item.idEstado} label={item.nombre} value={item.idEstado} />
+        ))}
+      </Picker>
+
+      <Text style={styles.label}>Transacción:</Text>
+      <Picker selectedValue={idTransaccion} onValueChange={setIdTransaccion}>
+        <Picker.Item label="Selecciona una transacción" value="" />
+        {transacciones.map((item) => (
+          <Picker.Item key={item.idTransaccion} label={item.nombre} value={item.idTransaccion} />
+        ))}
+      </Picker>
+
+      <Text style={styles.label}>Inmobiliaria:</Text>
+      <Picker selectedValue={idInmobiliaria} onValueChange={setIdInmobiliaria}>
+        <Picker.Item label="Selecciona una inmobiliaria" value="" />
+        {inmobiliarias.map((item) => (
+          <Picker.Item key={item.idInmobiliaria} label={item.nombre} value={item.idInmobiliaria} />
+        ))}
+      </Picker>
+
+      <Button title="Seleccionar Imagen" onPress={seleccionarImagen} />
+      {imagen && <Image source={{ uri: imagen }} style={styles.imagen} />}
+
+      <Button title="Publicar" onPress={publicar} />
     </ScrollView>
   );
 };
@@ -62,23 +177,23 @@ const PublicarInmueble = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: '#fff',
-    flexGrow: 1,
   },
-  title: {
-    fontSize: 24,
+  label: {
+    marginTop: 15,
     fontWeight: 'bold',
-    color: '#1a237e',
-    textAlign: 'center',
-    marginBottom: 20,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: '#f2f2f2',
-    borderRadius: 8,
     padding: 10,
-    marginBottom: 15,
+    marginTop: 5,
+    borderRadius: 5,
+  },
+  imagen: {
+    width: '100%',
+    height: 200,
+    marginTop: 10,
+    resizeMode: 'cover',
+    borderRadius: 5,
   },
 });
 
