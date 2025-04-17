@@ -1,74 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Alert,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Platform,
+  ImageBackground,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from "../../../../App"; 
+import styles from './Style_publicar';
+
+// Definir tipos de datos para transacción, tipo, estado
+type Transaccion = {
+  idtransaccion: string;
+  descripcion: string;
+};
+
+type Tipo = {
+  idtipo: string;
+  descripcion: string;
+};
+
+type Estado = {
+  id_estado: string;
+  descripcion: string;
+};
+
+// Definir el tipo de navegación para PublicarInmueble
+type PublicarInmuebleNavigationProp = StackNavigationProp<RootStackParamList, 'PublicarInmueble'>;
 
 const PublicarInmueble = () => {
-  const [titulo, setTitulo] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [precio, setPrecio] = useState('');
-  const [direccion, setDireccion] = useState('');
-  const [imagen, setImagen] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    Nombre: '',
+    descripcion: '',
+    localidad: '',
+    direccion: '',
+    numCont: '',
+    precio: '',
+    fechaPubli: '',
+    estado_id_estado: '',
+    tipo_idtipo: '',
+    transaccion_idtransaccion: '',
+    imagen: null as any,
+    inmobiliaria_idInmobiliaria: '1',
+  });
 
-  const [tipos, setTipos] = useState<any[]>([]);
-  const [estados, setEstados] = useState<any[]>([]);
-  const [transacciones, setTransacciones] = useState<any[]>([]);
-  const [inmobiliarias, setInmobiliarias] = useState<any[]>([]);
+  const [estados, setEstados] = useState<Estado[]>([]);
+  const [tipos, setTipos] = useState<Tipo[]>([]);
+  const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
 
-  const [idTipo, setIdTipo] = useState('');
-  const [idEstado, setIdEstado] = useState('');
-  const [idTransaccion, setIdTransaccion] = useState('');
-  const [idInmobiliaria, setIdInmobiliaria] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  useEffect(() => {
-    // Cargar tipos
-    fetch('http://192.168.0.3/ApiApp/tipo.php')
-      .then((res) => res.json())
-      .then((data) => {
-        console.log('Tipos:', data);
-        if (Array.isArray(data)) setTipos(data);
-        else setTipos([]);
-      })
-      .catch((error) => {
-        console.error('Error al cargar tipos:', error);
-      });
+  const navigation = useNavigation<PublicarInmuebleNavigationProp>(); // Usamos el tipo de navegación aquí
 
-    // Cargar estados
-    fetch('http://192.168.0.3/ApiApp/estado.php')
-      .then((res) => res.json())
-      .then((data) => {
-        console.log('Estados:', data);
-        if (Array.isArray(data)) setEstados(data);
-        else setEstados([]);
-      })
-      .catch((error) => {
-        console.error('Error al cargar estados:', error);
-      });
-
-    // Cargar transacciones
-    fetch('http://192.168.0.3/ApiApp/transaccion.php')
-      .then((res) => res.json())
-      .then((data) => {
-        console.log('Transacciones:', data);
-        if (Array.isArray(data)) setTransacciones(data);
-        else setTransacciones([]);
-      })
-      .catch((error) => {
-        console.error('Error al cargar transacciones:', error);
-      });
-
-    // Cargar inmobiliarias
-    fetch('http://192.168.0.3/ApiApp/inmobiliaria.php')
-      .then((res) => res.json())
-      .then((data) => {
-        console.log('Inmobiliarias:', data);
-        if (Array.isArray(data)) setInmobiliarias(data);
-        else setInmobiliarias([]);
-      })
-      .catch((error) => {
-        console.error('Error al cargar inmobiliarias:', error);
-      });
-  }, []);
+  const handleChange = (name: keyof typeof formData, value: string | null) => {
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
   const seleccionarImagen = async () => {
     const resultado = await ImagePicker.launchImageLibraryAsync({
@@ -78,123 +77,258 @@ const PublicarInmueble = () => {
     });
 
     if (!resultado.canceled && resultado.assets.length > 0) {
-      setImagen(resultado.assets[0].uri);
+      const uri = resultado.assets[0].uri;
+      const nombreArchivo = uri.split('/').pop();
+      const tipoArchivo = nombreArchivo?.split('.').pop();
+
+      const archivo = {
+        uri,
+        name: nombreArchivo,
+        type: `image/${tipoArchivo}`,
+      };
+
+      setFormData({
+        ...formData,
+        imagen: archivo,
+      });
     }
   };
 
-  const publicar = () => {
-    const datos = {
-      titulo,
+  const validarFormulario = () => {
+    const {
+      Nombre,
       descripcion,
-      precio,
+      localidad,
       direccion,
+      numCont,
+      precio,
+      fechaPubli,
+      estado_id_estado,
+      tipo_idtipo,
+      transaccion_idtransaccion,
       imagen,
-      idTipo,
-      idEstado,
-      idTransaccion,
-      idInmobiliaria,
-    };
+    } = formData;
 
-    fetch('http://192.168.0.3/ApiApp/publicar.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(datos),
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        alert(res.mensaje);
-      })
-      .catch((error) => {
-        alert('Error al publicar');
-        console.error(error);
-      });
+    if (
+      !Nombre ||
+      !descripcion ||
+      !localidad ||
+      !direccion ||
+      !numCont ||
+      !precio ||
+      !fechaPubli ||
+      !estado_id_estado ||
+      !tipo_idtipo ||
+      !transaccion_idtransaccion ||
+      !imagen
+    ) {
+      Alert.alert('Error', 'Por favor completa todos los campos');
+      return false;
+    }
+    return true;
   };
 
+  const handleSubmit = async () => {
+    if (!validarFormulario()) return;
+
+    try {
+      const formDataObj = new FormData();
+      Object.keys(formData).forEach((key) => {
+        const value = formData[key as keyof typeof formData];
+        formDataObj.append(key, value instanceof Object ? value : String(value));
+      });
+
+      const response = await fetch('http://192.168.0.3/ApiApp/Publicar.php', {
+        method: 'POST',
+        body: formDataObj,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        Alert.alert('Publicación exitosa', 'El inmueble se ha publicado correctamente.');
+        setFormData({
+          Nombre: '',
+          descripcion: '',
+          localidad: '',
+          direccion: '',
+          numCont: '',
+          precio: '',
+          fechaPubli: '',
+          estado_id_estado: '',
+          tipo_idtipo: '',
+          transaccion_idtransaccion: '',
+          imagen: null,
+          inmobiliaria_idInmobiliaria: '1',
+        });
+        setSelectedDate(null);
+        navigation.navigate('MisPublicaciones'); // Navegar después de publicar
+      } else {
+        Alert.alert('Error', data.error || 'Error desconocido.');
+      }
+    } catch (error) {
+      console.error('Error al registrar:', error);
+      Alert.alert('Error', 'Hubo un error al intentar publicar el inmueble.');
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async (
+      url: string,
+      setState: React.Dispatch<React.SetStateAction<any[]>>,
+      label: string
+    ) => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const data = await response.json();
+        setState(data);
+      } catch (error) {
+        console.error(`Error al cargar ${label}:`, error);
+        Alert.alert('Error', `No se pudo cargar ${label}.`);
+      }
+    };
+
+    fetchData('http://192.168.0.3/ApiApp/Variantes.php', setTransacciones, 'Transacciones');
+    fetchData('http://192.168.0.3/ApiApp/tipos.php', setTipos, 'Tipos');
+    fetchData('http://192.168.0.3/ApiApp/estados.php', setEstados, 'Estados');
+  }, []);
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.label}>Título:</Text>
-      <TextInput style={styles.input} value={titulo} onChangeText={setTitulo} />
+    <ImageBackground
+      source={require('../../../assets/diseno-de-casas-modernas-1_0.jpg')} 
+      style={{ flex: 1 }}
+      resizeMode="cover"
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Publicar Inmueble</Text>
 
-      <Text style={styles.label}>Descripción:</Text>
-      <TextInput
-        style={styles.input}
-        value={descripcion}
-        onChangeText={setDescripcion}
-        multiline
-      />
+        {/* Formulario de publicación */}
+        <Text style={styles.label}>Nombre del Inmueble:</Text>
+        <TextInput
+          style={styles.input}
+          value={formData.Nombre}
+          onChangeText={(text) => handleChange('Nombre', text)}
+          placeholder="Ingrese el Nombre del Inmueble"
+        />
 
-      <Text style={styles.label}>Precio:</Text>
-      <TextInput
-        style={styles.input}
-        value={precio}
-        onChangeText={setPrecio}
-        keyboardType="numeric"
-      />
+        <Text style={styles.label}>Descripción:</Text>
+        <TextInput
+          style={styles.input}
+          value={formData.descripcion}
+          onChangeText={(text) => handleChange('descripcion', text)}
+          placeholder="Descripción del inmueble"
+          multiline
+        />
 
-      <Text style={styles.label}>Dirección:</Text>
-      <TextInput style={styles.input} value={direccion} onChangeText={setDireccion} />
+        <Text style={styles.label}>Localidad:</Text>
+        <TextInput
+          style={styles.input}
+          value={formData.localidad}
+          onChangeText={(text) => handleChange('localidad', text)}
+          placeholder="Ingrese la localidad"
+        />
 
-      <Text style={styles.label}>Tipo:</Text>
-      <Picker selectedValue={idTipo} onValueChange={setIdTipo}>
-        <Picker.Item label="Selecciona un tipo" value="" />
-        {tipos.map((item) => (
-          <Picker.Item key={item.idTipo} label={item.nombre} value={item.idTipo} />
-        ))}
-      </Picker>
+        <Text style={styles.label}>Dirección:</Text>
+        <TextInput
+          style={styles.input}
+          value={formData.direccion}
+          onChangeText={(text) => handleChange('direccion', text)}
+          placeholder="Dirección del inmueble"
+        />
 
-      <Text style={styles.label}>Estado:</Text>
-      <Picker selectedValue={idEstado} onValueChange={setIdEstado}>
-        <Picker.Item label="Selecciona un estado" value="" />
-        {estados.map((item) => (
-          <Picker.Item key={item.idEstado} label={item.nombre} value={item.idEstado} />
-        ))}
-      </Picker>
+        <Text style={styles.label}>Número de Contacto:</Text>
+        <TextInput
+          style={styles.input}
+          value={formData.numCont}
+          onChangeText={(text) => handleChange('numCont', text)}
+          placeholder="Número de contacto"
+          keyboardType="phone-pad"
+        />
 
-      <Text style={styles.label}>Transacción:</Text>
-      <Picker selectedValue={idTransaccion} onValueChange={setIdTransaccion}>
-        <Picker.Item label="Selecciona una transacción" value="" />
-        {transacciones.map((item) => (
-          <Picker.Item key={item.idTransaccion} label={item.nombre} value={item.idTransaccion} />
-        ))}
-      </Picker>
+        <Text style={styles.label}>Precio:</Text>
+        <TextInput
+          style={styles.input}
+          value={formData.precio}
+          onChangeText={(text) => handleChange('precio', text)}
+          placeholder="Ingrese el precio"
+          keyboardType="numeric"
+        />
 
-      <Text style={styles.label}>Inmobiliaria:</Text>
-      <Picker selectedValue={idInmobiliaria} onValueChange={setIdInmobiliaria}>
-        <Picker.Item label="Selecciona una inmobiliaria" value="" />
-        {inmobiliarias.map((item) => (
-          <Picker.Item key={item.idInmobiliaria} label={item.nombre} value={item.idInmobiliaria} />
-        ))}
-      </Picker>
+        <Text style={styles.label}>Fecha de Publicación:</Text>
+        <TouchableOpacity
+          onPress={() => setShowDatePicker(true)}
+          style={styles.input}
+        >
+          <Text>
+            {selectedDate
+              ? selectedDate.toISOString().split('T')[0]
+              : 'Selecciona una fecha'}
+          </Text>
+        </TouchableOpacity>
 
-      <Button title="Seleccionar Imagen" onPress={seleccionarImagen} />
-      {imagen && <Image source={{ uri: imagen }} style={styles.imagen} />}
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate || new Date()}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={(event, date) => {
+              setShowDatePicker(false);
+              if (date) {
+                setSelectedDate(date);
+                handleChange('fechaPubli', date.toISOString().split('T')[0]);
+              }
+            }}
+          />
+        )}
 
-      <Button title="Publicar" onPress={publicar} />
-    </ScrollView>
+        <Text style={styles.label}>Transacción:</Text>
+        <Picker
+          selectedValue={formData.transaccion_idtransaccion}
+          onValueChange={(value) => handleChange('transaccion_idtransaccion', value)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Seleccione una transacción" value="" />
+          {transacciones.map((item) => (
+            <Picker.Item key={item.idtransaccion} label={item.descripcion} value={item.idtransaccion} />
+          ))}
+        </Picker>
+
+        <Text style={styles.label}>Tipo de Inmueble:</Text>
+        <Picker
+          selectedValue={formData.tipo_idtipo}
+          onValueChange={(value) => handleChange('tipo_idtipo', value)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Seleccione el tipo de inmueble" value="" />
+          {tipos.map((item) => (
+            <Picker.Item key={item.idtipo} label={item.descripcion} value={item.idtipo} />
+          ))}
+        </Picker>
+
+        <Text style={styles.label}>Estado del Inmueble:</Text>
+        <Picker
+          selectedValue={formData.estado_id_estado}
+          onValueChange={(value) => handleChange('estado_id_estado', value)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Seleccione el estado" value="" />
+          {estados.map((item) => (
+            <Picker.Item key={item.id_estado} label={item.descripcion} value={item.id_estado} />
+          ))}
+        </Picker>
+
+        <TouchableOpacity style={styles.imageButton} onPress={seleccionarImagen}>
+          <Text style={styles.imageButtonText}>Seleccionar Imagen</Text>
+        </TouchableOpacity>
+        {formData.imagen && <Image source={{ uri: formData.imagen.uri }} style={styles.imagen} />}
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitButtonText}>Publicar</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </ImageBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-  },
-  label: {
-    marginTop: 15,
-    fontWeight: 'bold',
-  },
-  input: {
-    borderWidth: 1,
-    padding: 10,
-    marginTop: 5,
-    borderRadius: 5,
-  },
-  imagen: {
-    width: '100%',
-    height: 200,
-    marginTop: 10,
-    resizeMode: 'cover',
-    borderRadius: 5,
-  },
-});
 
 export default PublicarInmueble;

@@ -6,6 +6,7 @@ import {
   Alert,
   ScrollView,
   StatusBar,
+  TouchableOpacity,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -20,6 +21,7 @@ import * as Animatable from "react-native-animatable";
 const HomeScreen = () => {
   const { email, password, onChange } = useViewModel();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const [passwordVisible, setPasswordVisible] = useState(false); // Estado para controlar la visibilidad de la contraseña
 
   // Manejo de inicio de sesión
   const handleLogin = async () => {
@@ -29,26 +31,20 @@ const HomeScreen = () => {
     }
 
     try {
-      // Realiza la solicitud POST a la API PHP
       const response = await axios.post("http://192.168.0.3/ApiApp/loginInmobiliaria.php", {
-        email,//ME1234@gmail.com
-        password,//ME1234
+        email,
+        password,
         loginType: "inmobiliaria",
       });
 
       if (response.data.success) {
-        // Si la respuesta es exitosa, muestra la alerta de éxito
         Alert.alert("Éxito", "Has iniciado sesión correctamente.");
-
-        // Luego, navega a la siguiente pantalla
-        navigation.navigate("InmobiliariaPerfil",)
+        navigation.navigate("InmobiliariaPerfil");
       } else {
-        // Si la respuesta contiene un error, muestra el mensaje correspondiente
         Alert.alert("Error", response.data.message);
       }
     } catch (error: unknown) {
-      // Manejo de errores si ocurre un fallo en la solicitud o en la conexión
-      console.error(error); // Para depuración en consola
+      console.error(error);
 
       if (axios.isAxiosError(error)) {
         Alert.alert("Error", error.response?.data?.message || "Error al iniciar sesión.");
@@ -57,7 +53,6 @@ const HomeScreen = () => {
       }
     }
 
-    // Limpia los campos después de intentar el inicio de sesión
     onChange("email", "");
     onChange("password", "");
   };
@@ -92,14 +87,30 @@ const HomeScreen = () => {
             value={email}
             onChangeText={(text) => onChange("email", text)}
           />
-          <CustomTextInput
-            image={require("../../../assets/passwordd.png")}
-            placeholder="Contraseña"
-            secureTextEntry
-            property="password"
-            value={password}
-            onChangeText={(text) => onChange("password", text)}
-          />
+
+          <View style={{ position: "relative" }}>
+            <CustomTextInput
+              image={require("../../../assets/passwordd.png")}
+              placeholder="Contraseña"
+              secureTextEntry={!passwordVisible} // Cambia según el estado
+              property="password"
+              value={password}
+              onChangeText={(text) => onChange("password", text)}
+            />
+            <TouchableOpacity
+              style={HomeStyles.eyeIcon}
+              onPress={() => setPasswordVisible(!passwordVisible)}
+            >
+              <Image
+                source={
+                  passwordVisible
+                    ? require("../../../assets/eye-open.png") // Icono de ojo abierto
+                    : require("../../../assets/eye-closed.png") // Icono de ojo cerrado
+                }
+                style={{ width: 24, height: 24 }}
+              />
+            </TouchableOpacity>
+          </View>
 
           <Text
             style={HomeStyles.forgotText}

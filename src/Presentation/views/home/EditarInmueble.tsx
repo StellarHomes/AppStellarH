@@ -1,189 +1,165 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, Image, StyleSheet, ScrollView, Alert } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert } from 'react-native';
 import axios from 'axios';
-import { launchImageLibrary } from 'react-native-image-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 
-// Tipos
-type InmuebleType = {
-  idInmueble: string;
-  Nombre: string;
-  Descripcion: string;
-  localidad: string;
-  precio: string;
-  FechaPubli: string;
-  ImagenUrl: string;
-  estado_id_estado: string;
-  tipo_idtipo: string;
-  transaccion_idtransaccion: string;
-  imagen: null | {
-    uri: string;
-    type: string;
-    name: string;
+interface Props {
+  route: {
+    params: {
+      inmueble: any;
+    };
   };
-};
+  navigation: any;
+}
 
-type RootStackParamList = {
-  EditarInmueble: { inmueble: InmuebleType };
-  Inmuebles: undefined;
-};
+const EditarInmueble: React.FC<Props> = ({ route, navigation }) => {
+  const { inmueble } = route.params;
 
-const EditarInmueble = () => {
-  const route = useRoute<RouteProp<RootStackParamList, 'EditarInmueble'>>();
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const inmueble = route.params?.inmueble;
+  const [nombre, setNombre] = useState(inmueble.Nombre);
+  const [descripcion, setDescripcion] = useState(inmueble.Descripcion);
+  const [localidad, setLocalidad] = useState(inmueble.localidad);
+  const [direccion, setDireccion] = useState(inmueble.Direccion);
+  const [numCont, setNumCont] = useState(String(inmueble.NumCont));
+  const [precio, setPrecio] = useState(String(inmueble.precio));
+  const [fechaPubli, setFechaPubli] = useState(new Date(inmueble.FechaPubli));
+  const [estadoId, setEstadoId] = useState<number>(inmueble.estado_id_estado || 0);
+  const [transaccionId, setTransaccionId] = useState<number>(inmueble.transaccion_idtransaccion || 0);
+  const [tipoId, setTipoId] = useState<number>(inmueble.tipo_idtipo || 0);
 
-  const [formData, setFormData] = useState<InmuebleType>({
-    idInmueble: '',
-    Nombre: '',
-    Descripcion: '',
-    localidad: '',
-    precio: '',
-    FechaPubli: '',
-    ImagenUrl: '',
-    estado_id_estado: '',
-    tipo_idtipo: '',
-    transaccion_idtransaccion: '',
-    imagen: null,
-  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [estados, setEstados] = useState<any[]>([]);
+  const [transacciones, setTransacciones] = useState<any[]>([]);
+  const [tipos, setTipos] = useState<any[]>([]);
 
-  const [estados, setEstados] = useState([]);
-  const [tipos, setTipos] = useState([]);
-  const [transacciones, setTransacciones] = useState([]);
-
-  useEffect(() => {
-    if (inmueble) {
-      setFormData({
-        ...inmueble,
-        ImagenUrl: inmueble.imagen ? `data:image/jpeg;base64,${inmueble.imagen}` : '',
-      });
-    }
-  }, [inmueble]);
-
+  // Cargar datos de estados, transacciones y tipos
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [estadosData, tiposData, transaccionesData] = await Promise.all([
-          fetch('http://192.168.0.3/ApiApp/estados.php').then(res => res.json()),
-          fetch('http://192.168.0.3/ApiApp/tipos.php').then(res => res.json()),
-          fetch('http://192.168.0.3/ApiApp/Variantes.php').then(res => res.json()),
-        ]);
-        setEstados(estadosData);
-        setTipos(tiposData);
-        setTransacciones(transaccionesData);
+        const estadosResponse = await axios.get('http://192.168.0.3/ApiApp/estados.php');
+        setEstados(estadosResponse.data);
+
+        const transaccionesResponse = await axios.get('http://192.168.0.3/ApiApp/Variantes.php');
+        setTransacciones(transaccionesResponse.data);
+
+        const tiposResponse = await axios.get('http://192.168.0.3/ApiApp/tipos.php');
+        setTipos(tiposResponse.data);
       } catch (error) {
-        Alert.alert('Error', 'Hubo un problema al cargar los datos');
+        console.error('Error al cargar los datos:', error);
       }
     };
 
     fetchData();
   }, []);
 
-  const handleChange = (name: keyof InmuebleType, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleImagePick = () => {
-    launchImageLibrary({ mediaType: 'photo' }, (response) => {
-      if (response.assets && response.assets.length > 0) {
-        const selectedImage = response.assets[0];
-        setFormData(prev => ({
-          ...prev,
-          imagen: {
-            uri: selectedImage.uri ?? '',
-            type: selectedImage.type ?? '',
-            name: selectedImage.fileName ?? 'imagen.jpg',
-          },
-        }));
-      }
-    });
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.Nombre || !formData.Descripcion || !formData.localidad || !formData.precio || !formData.FechaPubli) {
-      Alert.alert('Error', 'Por favor completa todos los campos.');
-      return;
-    }
-
+  const handleActualizar = async () => {
     try {
-      const updatedData = new FormData();
-
-      (Object.keys(formData) as (keyof InmuebleType)[]).forEach((key) => {
-        if (key === 'imagen' && formData.imagen) {
-          updatedData.append('imagen', {
-            uri: formData.imagen.uri,
-            type: formData.imagen.type,
-            name: formData.imagen.name,
-          } as any);
-        } else {
-          updatedData.append(key, formData[key] as string);
-        }
-      });
-
-      const response = await axios.post('http://192.168.0.3/ApiApp/updateInmueble.php', updatedData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const response = await axios.post('http://192.168.0.3/ApiApp/editarInmueble.php', {
+        idInmueble: inmueble.idInmueble,
+        Nombre: nombre,
+        Descripcion: descripcion,
+        localidad,
+        Direccion: direccion,
+        NumCont: Number(numCont),
+        precio: Number(precio),
+        FechaPubli: fechaPubli.toISOString().split('T')[0],
+        estadoId,
+        transaccionId,
+        tipoId,
       });
 
       if (response.data.success) {
         Alert.alert('Éxito', 'Inmueble actualizado correctamente');
-        navigation.navigate('Inmuebles');
+        navigation.goBack();
       } else {
         Alert.alert('Error', 'No se pudo actualizar el inmueble');
       }
     } catch (error) {
+      Alert.alert('Error', 'Error al conectar con el servidor');
       console.error(error);
-      Alert.alert('Error', 'Ocurrió un error al enviar los datos');
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Editar Inmueble</Text>
+      <Text style={styles.label}>Nombre:</Text>
+      <TextInput style={styles.input} value={nombre} onChangeText={setNombre} />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre del Inmueble"
-        value={formData.Nombre}
-        onChangeText={(text) => handleChange('Nombre', text)}
-      />
+      <Text style={styles.label}>Descripción:</Text>
+      <TextInput style={styles.input} value={descripcion} onChangeText={setDescripcion} />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Descripción"
-        value={formData.Descripcion}
-        onChangeText={(text) => handleChange('Descripcion', text)}
-      />
+      <Text style={styles.label}>Localidad:</Text>
+      <TextInput style={styles.input} value={localidad} onChangeText={setLocalidad} />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Localidad"
-        value={formData.localidad}
-        onChangeText={(text) => handleChange('localidad', text)}
-      />
+      <Text style={styles.label}>Dirección:</Text>
+      <TextInput style={styles.input} value={direccion} onChangeText={setDireccion} />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Precio"
-        keyboardType="numeric"
-        value={formData.precio}
-        onChangeText={(text) => handleChange('precio', text)}
-      />
+      <Text style={styles.label}>Número de Contacto:</Text>
+      <TextInput style={styles.input} keyboardType="numeric" value={numCont} onChangeText={setNumCont} />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Fecha de Publicación (YYYY-MM-DD)"
-        value={formData.FechaPubli}
-        onChangeText={(text) => handleChange('FechaPubli', text)}
-      />
+      <Text style={styles.label}>Precio:</Text>
+      <TextInput style={styles.input} keyboardType="numeric" value={precio} onChangeText={setPrecio} />
 
-      {formData.ImagenUrl && (
-        <Image source={{ uri: formData.ImagenUrl }} style={styles.image} />
+      <Text style={styles.label}>Fecha de Publicación:</Text>
+      <Button title={fechaPubli.toDateString()} onPress={() => setShowDatePicker(true)} />
+      {showDatePicker && (
+        <DateTimePicker
+          value={fechaPubli}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) setFechaPubli(selectedDate);
+          }}
+        />
       )}
 
-      <Button title="Seleccionar nueva imagen" onPress={handleImagePick} />
+      <Text style={styles.label}>Estado:</Text>
+      {estados && estados.length > 0 ? (
+        <Picker
+          selectedValue={estadoId}
+          onValueChange={(itemValue) => setEstadoId(itemValue)}
+          style={styles.input}
+        >
+          {estados.map((estado) => (
+            <Picker.Item key={estado.id} label={estado.nombre} value={estado.id} />
+          ))}
+        </Picker>
+      ) : (
+        <Text>Cargando estados...</Text>
+      )}
 
-      <Button title="Actualizar Inmueble" onPress={handleSubmit} color="#1a237e" />
+      <Text style={styles.label}>Transacción:</Text>
+      {transacciones && transacciones.length > 0 ? (
+        <Picker
+          selectedValue={transaccionId}
+          onValueChange={(itemValue) => setTransaccionId(itemValue)}
+          style={styles.input}
+        >
+          {transacciones.map((transaccion) => (
+            <Picker.Item key={transaccion.id} label={transaccion.nombre} value={transaccion.id} />
+          ))}
+        </Picker>
+      ) : (
+        <Text>Cargando transacciones...</Text>
+      )}
+
+      <Text style={styles.label}>Tipo:</Text>
+      {tipos && tipos.length > 0 ? (
+        <Picker
+          selectedValue={tipoId}
+          onValueChange={(itemValue) => setTipoId(itemValue)}
+          style={styles.input}
+        >
+          {tipos.map((tipo) => (
+            <Picker.Item key={tipo.id} label={tipo.nombre} value={tipo.id} />
+          ))}
+        </Picker>
+      ) : (
+        <Text>Cargando tipos...</Text>
+      )}
+
+      <Button title="Actualizar Inmueble" onPress={handleActualizar} />
     </ScrollView>
   );
 };
@@ -191,28 +167,17 @@ const EditarInmueble = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    paddingBottom: 50,
+    gap: 10,
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
+  label: {
     fontWeight: 'bold',
-    color: '#1a237e',
-    textAlign: 'center',
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
-    marginBottom: 15,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 40,
-  },
-  image: {
-    width: '100%',
-    height: 200,
-    marginBottom: 15,
-    resizeMode: 'contain',
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 10,
   },
 });
 
