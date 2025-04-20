@@ -1,18 +1,17 @@
-const mysql = require("mysql");
+const mysql = require('mysql');
 
 const connection = mysql.createConnection({
-  host: "192.168.0.3",
-  user: "root",
-  password: "duvan1918",
-  database: "stellar_homes",
+  host: '192.168.0.4',
+  user: 'root',
+  password: 'duvan1918',
+  database: 'stellar_homes',
+  connectTimeout: 10000, // 10 segundos para asegurar que no es problema de tiempo
 });
 
 connection.connect((err) => {
   if (err) {
-    console.error("❌ Error de conexión a la BD:", err);
-    return;
+    console.error('❌ Error al conectar:', err.code, err.message);
+  } else {
+    console.log('✅ ¡Conexión exitosa!');
   }
-  console.log("✅ Conexión a la base de datos MySQL exitosa!");
 });
-
-module.exports = connection;

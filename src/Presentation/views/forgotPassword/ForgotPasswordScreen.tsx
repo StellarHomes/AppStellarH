@@ -6,7 +6,7 @@ import { RootStackParamList } from "../../../../App";
 import RoundedButton from "../../components/RoundedButton";
 import { CustomTextInput } from "../../components/CustomTextInput";
 import HomeStyles from "../home/Styles";
-import axios from "axios"; // Usamos axios para hacer la petición
+import axios from "axios"; 
 
 const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState("");
@@ -28,7 +28,7 @@ const ForgotPasswordScreen = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/forgot-password", { email });
+      const response = await axios.post("http://192.168.0.4/ApiApp/ForgotPasswordScreen.php", { email });
 
       if (response.data.success) {
         Alert.alert("Recuperación de Contraseña", "Revisa tu correo para restablecer tu contraseña.");
@@ -46,9 +46,9 @@ const ForgotPasswordScreen = () => {
 
   return (
     <View style={HomeStyles.container}>
-      <Image source={require("../../../assets/chef.jpg")} style={HomeStyles.imageBackground} />
+      <Image source={require("../../../assets/diseno-de-casas-modernas-1_0.jpg")} style={HomeStyles.imageBackground} />
       <View style={HomeStyles.logoContainer}>
-        <Image source={require("../../../assets/logo.png")} style={HomeStyles.logoImage} />
+        <Image source={require("../../../assets/sh_blanco-removebg-preview.png")} style={HomeStyles.logoImage} />
         <Text style={HomeStyles.logoText}>FOOD APP</Text>
       </View>
 
