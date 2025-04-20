@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  RefreshControl
+  RefreshControl,
+  ImageBackground,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -26,13 +27,15 @@ interface Inmueble {
   precio: string;
   FechaPubli: string;
   imagen?: string;
+  id_estado?: string;
+  estado_descripcion?: string;
 }
 
 const InmueblesList = () => {
   const [inmuebles, setInmuebles] = useState<Inmueble[]>([]);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<NavigationProp>();
-  const BASE_URL = 'http://192.168.0.3/ApiApp/';
+  const BASE_URL = 'http://192.168.0.4/ApiApp/';
 
   const fetchInmuebles = async (): Promise<Inmueble[] | undefined> => {
     try {
@@ -104,104 +107,125 @@ const InmueblesList = () => {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={reloadInmuebles} />}
+    <ImageBackground
+      source={require('../../../assets/diseno-de-casas-modernas-1_0.jpg')} 
+      style={styles.background}
+      imageStyle={{ opacity: 1 }}
     >
-      <Text style={styles.title}>Mis Publicaciones</Text>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={reloadInmuebles} />}
+      >
+        <Text style={styles.title}>Mis Publicaciones</Text>
 
-      <TouchableOpacity style={styles.reloadButton} onPress={reloadInmuebles}>
-        <Text style={styles.reloadText}>Recargar</Text>
-      </TouchableOpacity>
+        
 
-      {inmuebles.length > 0 ? (
-        inmuebles.map((inmueble) => {
-          const imageUrl = inmueble.imagen
-            ? inmueble.imagen.startsWith('http')
-              ? inmueble.imagen
-              : `${BASE_URL}${inmueble.imagen}`
-            : 'https://via.placeholder.com/150';
+        {inmuebles.length > 0 ? (
+          inmuebles.map((inmueble) => {
+            const imageUrl = inmueble.imagen
+              ? inmueble.imagen.startsWith('http')
+                ? inmueble.imagen
+                : `${BASE_URL}uploads/${inmueble.imagen}`
+              : 'https://via.placeholder.com/150';
 
-          return (
-            <View key={inmueble.idInmueble} style={styles.card}>
-              <Image source={{ uri: imageUrl }} style={styles.image} />
-              <Text style={styles.name}>{inmueble.Nombre}</Text>
-              <Text style={styles.description}>{inmueble.Descripcion}</Text>
-              <Text>{inmueble.localidad}</Text>
-              <Text>{inmueble.precio}</Text>
-              <Text>{inmueble.FechaPubli}</Text>
+            return (
+              <View key={inmueble.idInmueble} style={styles.card}>
+                <Image source={{ uri: imageUrl }} style={styles.image} />
+                <Text style={styles.name}>{inmueble.Nombre}</Text>
+                <Text style={styles.description}>{inmueble.Descripcion}</Text>
+                <Text style={styles.info}>📍 {inmueble.localidad}</Text>
+                <Text style={styles.info}>💲 ${inmueble.precio}</Text>
+                <Text style={styles.info}>📅 {inmueble.FechaPubli}</Text>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={[styles.button, styles.editButton]}
+                    onPress={() => handleEdit(inmueble.idInmueble)}
+                  >
+                    <Text style={styles.buttonText}>Editar</Text>
+                  </TouchableOpacity>
 
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.editButton]}
-                  onPress={() => handleEdit(inmueble.idInmueble)}
-                >
-                  <Text style={styles.buttonText}>Editar</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.button, styles.deleteButton]}
-                  onPress={() => handleDelete(inmueble.idInmueble)}
-                >
-                  <Text style={styles.buttonText}>Eliminar</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.button, styles.deleteButton]}
+                    onPress={() => handleDelete(inmueble.idInmueble)}
+                  >
+                    <Text style={styles.buttonText}>Eliminar</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-          );
-        })
-      ) : (
-        <Text>No hay inmuebles disponibles.</Text>
-      )}
-    </ScrollView>
+            );
+          })
+        ) : (
+          <Text>No hay inmuebles disponibles.</Text>
+        )}
+      </ScrollView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
   container: {
     padding: 16,
-    backgroundColor: '#fff',
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginVertical: 10,
+    marginVertical: 16,
+    color: '#1a237e',
   },
   reloadButton: {
     backgroundColor: '#3949ab',
     padding: 10,
     borderRadius: 6,
     alignSelf: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
   },
   reloadText: {
     color: '#fff',
     fontWeight: 'bold',
   },
   card: {
-    backgroundColor: '#f2f2f2',
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 10,
     padding: 16,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
     elevation: 3,
   },
   image: {
-    height: 150,
+    height: 160,
     width: '100%',
-    borderRadius: 8,
+    borderRadius: 10,
     marginBottom: 10,
   },
   name: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 4,
   },
   description: {
-    marginBottom: 8,
+    color: '#555',
+    marginBottom: 6,
+  },
+  info: {
+    color: '#333',
+    marginBottom: 2,
+  },
+  estado: {
+    color: '#2e7d32',
+    marginTop: 6,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 10,
+    marginTop: 12,
   },
   button: {
     padding: 10,
@@ -218,6 +242,7 @@ const styles = StyleSheet.create({
   buttonText: {
     textAlign: 'center',
     color: '#fff',
+    fontWeight: 'bold',
   },
 });
 

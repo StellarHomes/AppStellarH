@@ -3,7 +3,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import HomeScreen from "./src/Presentation/views/home/home";
-import { RegisterScreen } from "./src/Presentation/views/register/Register";
 import ForgotPasswordScreen from "./src/Presentation/views/forgotPassword/ForgotPasswordScreen";
 import InmobiliariaPerfil from "./src/Presentation/views/home/InmobiliariaPerfil";
 import MisPublicaciones from "./src/Presentation/views/home/MisPublicaciones";
@@ -32,7 +31,7 @@ const App = () => {
         <Stack.Screen name="HomeScreen" component={HomeScreen} />
         <Stack.Screen
           name="RegisterScreen"
-          component={RegisterScreen}
+          component={HomeScreen}
           options={{ headerShown: true, title: "Registro" }}
         />
         <Stack.Screen

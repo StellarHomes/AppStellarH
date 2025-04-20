@@ -6,6 +6,7 @@ import {
   Alert,
   ScrollView,
   StatusBar,
+  TouchableOpacity,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -20,8 +21,8 @@ import * as Animatable from "react-native-animatable";
 const HomeScreen = () => {
   const { email, password, onChange } = useViewModel();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
-  // Manejo de inicio de sesión
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Por favor, completa todos los campos.");
@@ -29,35 +30,28 @@ const HomeScreen = () => {
     }
 
     try {
-      // Realiza la solicitud POST a la API PHP
-      const response = await axios.post("http://192.168.0.3/ApiApp/loginInmobiliaria.php", {
-        email,//ME1234@gmail.com
-        password,//ME1234
+      const response = await axios.post("http://192.168.0.4/ApiApp/loginInmobiliaria.php", {
+        email,
+        password,
         loginType: "inmobiliaria",
       });
 
       if (response.data.success) {
-        // Si la respuesta es exitosa, muestra la alerta de éxito
         Alert.alert("Éxito", "Has iniciado sesión correctamente.");
-
-        // Luego, navega a la siguiente pantalla
-        navigation.navigate("InmobiliariaPerfil",)
+        navigation.navigate("InmobiliariaPerfil");
       } else {
-        // Si la respuesta contiene un error, muestra el mensaje correspondiente
-        Alert.alert("Error", response.data.message);
+        Alert.alert("Error", response.data.error || "Credenciales incorrectas.");
       }
     } catch (error: unknown) {
-      // Manejo de errores si ocurre un fallo en la solicitud o en la conexión
-      console.error(error); // Para depuración en consola
+      console.error("Error de login:", error);
 
       if (axios.isAxiosError(error)) {
-        Alert.alert("Error", error.response?.data?.message || "Error al iniciar sesión.");
+        Alert.alert("Error", error.response?.data?.error || "Error de red al iniciar sesión.");
       } else {
-        Alert.alert("Error", "Hubo un problema con la conexión.");
+        Alert.alert("Error", "Hubo un problema inesperado.");
       }
     }
 
-    // Limpia los campos después de intentar el inicio de sesión
     onChange("email", "");
     onChange("password", "");
   };
@@ -92,14 +86,30 @@ const HomeScreen = () => {
             value={email}
             onChangeText={(text) => onChange("email", text)}
           />
-          <CustomTextInput
-            image={require("../../../assets/passwordd.png")}
-            placeholder="Contraseña"
-            secureTextEntry
-            property="password"
-            value={password}
-            onChangeText={(text) => onChange("password", text)}
-          />
+
+          <View style={{ position: "relative" }}>
+            <CustomTextInput
+              image={require("../../../assets/passwordd.png")}
+              placeholder="Contraseña"
+              secureTextEntry={!passwordVisible}
+              property="password"
+              value={password}
+              onChangeText={(text) => onChange("password", text)}
+            />
+            <TouchableOpacity
+              style={HomeStyles.eyeIcon}
+              onPress={() => setPasswordVisible(!passwordVisible)}
+            >
+              <Image
+                source={
+                  passwordVisible
+                    ? require("../../../assets/eye-open.png")
+                    : require("../../../assets/eye-closed.png")
+                }
+                style={{ width: 24, height: 24 }}
+              />
+            </TouchableOpacity>
+          </View>
 
           <Text
             style={HomeStyles.forgotText}

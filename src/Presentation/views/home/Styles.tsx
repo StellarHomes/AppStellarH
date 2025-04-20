@@ -144,6 +144,12 @@ const HomeStyles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
   },
+  eyeIcon: {
+    position: "absolute",
+    right: 10,
+    top: "50%",
+    transform: [{ translateY: -12 }],
+  },
 });
 
 export default HomeStyles;

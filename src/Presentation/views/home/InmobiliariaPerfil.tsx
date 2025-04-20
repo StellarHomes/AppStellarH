@@ -26,7 +26,7 @@ const InmobiliariaPerfil = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
-    fetch('http://192.168.0.3/ApiApp/Inmobiliaria.php')
+    fetch('http://192.168.0.4/ApiApp/Inmobiliaria.php')
       .then(response => {
         if (!response.ok) throw new Error('Error al obtener los datos');
         return response.json();
@@ -50,7 +50,7 @@ const InmobiliariaPerfil = () => {
   };
 
   const handleSubmit = () => {
-    fetch('http://192.168.0.3/ApiApp/EditInmobiliaria.php', {
+    fetch('http://192.168.0.4/ApiApp/EditInmobiliaria.php', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
