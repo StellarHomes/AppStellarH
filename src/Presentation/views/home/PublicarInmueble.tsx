@@ -138,7 +138,11 @@ const PublicarInmueble = () => {
         formDataObj.append(key, value instanceof Object ? value : String(value));
       });
 
+<<<<<<< HEAD
       const response = await fetch('http://192.168.0.4/ApiApp/Publicar.php', {
+=======
+      const response = await fetch('http://192.168.0.3/ApiApp/Publicar.php', {
+>>>>>>> a5ff3884be50787a874e4edc85910a0cfadce28a
         method: 'POST',
         body: formDataObj,
       });
@@ -189,9 +193,15 @@ const PublicarInmueble = () => {
       }
     };
 
+<<<<<<< HEAD
     fetchData('http://192.168.0.4/ApiApp/Variantes.php', setTransacciones, 'Transacciones');
     fetchData('http://192.168.0.4/ApiApp/tipos.php', setTipos, 'Tipos');
     fetchData('http://192.168.0.4/ApiApp/estados.php', setEstados, 'Estados');
+=======
+    fetchData('http://192.168.0.3/ApiApp/Variantes.php', setTransacciones, 'Transacciones');
+    fetchData('http://192.168.0.3/ApiApp/tipos.php', setTipos, 'Tipos');
+    fetchData('http://192.168.0.3/ApiApp/estados.php', setEstados, 'Estados');
+>>>>>>> a5ff3884be50787a874e4edc85910a0cfadce28a
   }, []);
 
   return (
@@ -321,8 +331,11 @@ const PublicarInmueble = () => {
         <TouchableOpacity style={styles.imageButton} onPress={seleccionarImagen}>
           <Text style={styles.imageButtonText}>Seleccionar Imagen</Text>
         </TouchableOpacity>
+<<<<<<< HEAD
 
         {/* Mostrar la imagen seleccionada */}
+=======
+>>>>>>> a5ff3884be50787a874e4edc85910a0cfadce28a
         {formData.imagen && <Image source={{ uri: formData.imagen.uri }} style={styles.imagen} />}
 
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>

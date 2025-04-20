@@ -21,7 +21,11 @@ import * as Animatable from "react-native-animatable";
 const HomeScreen = () => {
   const { email, password, onChange } = useViewModel();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+<<<<<<< HEAD
   const [passwordVisible, setPasswordVisible] = useState(false);
+=======
+  const [passwordVisible, setPasswordVisible] = useState(false); // Estado para controlar la visibilidad de la contraseña
+>>>>>>> a5ff3884be50787a874e4edc85910a0cfadce28a
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -30,7 +34,11 @@ const HomeScreen = () => {
     }
 
     try {
+<<<<<<< HEAD
       const response = await axios.post("http://192.168.0.4/ApiApp/loginInmobiliaria.php", {
+=======
+      const response = await axios.post("http://192.168.0.3/ApiApp/loginInmobiliaria.php", {
+>>>>>>> a5ff3884be50787a874e4edc85910a0cfadce28a
         email,
         password,
         loginType: "inmobiliaria",
@@ -40,10 +48,17 @@ const HomeScreen = () => {
         Alert.alert("Éxito", "Has iniciado sesión correctamente.");
         navigation.navigate("InmobiliariaPerfil");
       } else {
+<<<<<<< HEAD
         Alert.alert("Error", response.data.error || "Credenciales incorrectas.");
       }
     } catch (error: unknown) {
       console.error("Error de login:", error);
+=======
+        Alert.alert("Error", response.data.message);
+      }
+    } catch (error: unknown) {
+      console.error(error);
+>>>>>>> a5ff3884be50787a874e4edc85910a0cfadce28a
 
       if (axios.isAxiosError(error)) {
         Alert.alert("Error", error.response?.data?.error || "Error de red al iniciar sesión.");
@@ -91,7 +106,11 @@ const HomeScreen = () => {
             <CustomTextInput
               image={require("../../../assets/passwordd.png")}
               placeholder="Contraseña"
+<<<<<<< HEAD
               secureTextEntry={!passwordVisible}
+=======
+              secureTextEntry={!passwordVisible} // Cambia según el estado
+>>>>>>> a5ff3884be50787a874e4edc85910a0cfadce28a
               property="password"
               value={password}
               onChangeText={(text) => onChange("password", text)}
@@ -103,8 +122,13 @@ const HomeScreen = () => {
               <Image
                 source={
                   passwordVisible
+<<<<<<< HEAD
                     ? require("../../../assets/eye-open.png")
                     : require("../../../assets/eye-closed.png")
+=======
+                    ? require("../../../assets/eye-open.png") // Icono de ojo abierto
+                    : require("../../../assets/eye-closed.png") // Icono de ojo cerrado
+>>>>>>> a5ff3884be50787a874e4edc85910a0cfadce28a
                 }
                 style={{ width: 24, height: 24 }}
               />
